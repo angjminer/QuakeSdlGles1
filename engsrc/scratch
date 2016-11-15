@@ -1,0 +1,41 @@
+tobedone:
+void R_DrawParticles (void)
+void R_RenderDlight (dlight_t *light)
+void R_RenderDlights (void)
+void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
+void R_Envmap_f (void)
+
+
+
+
+
+
+
+	int count = 0;
+	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
+	{
+	  count++;
+	}
+	GLfloat GLPoly[count*3];
+	GLfloat GLPoly_Tex[count*2];
+	int ofsv = 0;
+	int ofstx = 0;
+	v = p->verts[0];
+	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
+	{
+	      GLPoly[ofsv++] = v[0];
+	      GLPoly[ofsv++] = v[1];
+	      GLPoly[ofsv++] = v[2];
+	      GLPoly_Tex[ofstx++] = v[3];
+	      GLPoly_Tex[ofstx++] = v[4];
+	}
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  
+	glVertexPointer(3, GL_FLOAT, 0, GLPoly);
+	glTexCoordPointer(2, GL_FLOAT, 0, GLPoly_Tex);
+	glDrawArrays(GL_TRIANGLE_FAN,0,4);
+  
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
