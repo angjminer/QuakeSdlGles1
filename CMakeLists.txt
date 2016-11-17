@@ -10,6 +10,7 @@ add_subdirectory (extlib)
 
 include_directories(
 	"engsrc/"
+	"extlib/arraylib/"
 	"extlib/glm/"
 	"extlib/SDL2/include/"
 	${OPENGL_INCLUDE_DIR}
@@ -57,6 +58,7 @@ set(SV_SOURCE_FILES
         "engsrc/world.c"
         "engsrc/cd_null.c"
         "engsrc/sys_linux.c"
+        #"engsrc/sys_sdl.c"
         "engsrc/snd_dma.c"
         "engsrc/snd_mem.c"
         "engsrc/snd_mix.c"
@@ -73,6 +75,7 @@ set(GL_SOURCE_FILES
         "engsrc/gl_rsurf.c"
         "engsrc/gl_screen.c"
         "engsrc/gl_warp.c"
+        #"engsrc/vid_sdl.c"
         #"engsrc/gl_vidlinuxglx.c"
         "engsrc/gl_vidsdl.c"
  )
