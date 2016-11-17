@@ -10,14 +10,11 @@ add_subdirectory (extlib)
 
 include_directories(
 	"engsrc/"
-	"extlib/arraylib/"
 	"extlib/glm/"
 	"extlib/SDL2/include/"
 	${OPENGL_INCLUDE_DIR}
 )
-set(MY_EXTLIB_SOURCE
-	"extlib/arraylib/array.c"
-)
+
 set(CL_SOURCE_FILES
         "engsrc/cl_demo.c"
         "engsrc/cl_input.c"
@@ -58,7 +55,6 @@ set(SV_SOURCE_FILES
         "engsrc/world.c"
         "engsrc/cd_null.c"
         "engsrc/sys_linux.c"
-        #"engsrc/sys_sdl.c"
         "engsrc/snd_dma.c"
         "engsrc/snd_mem.c"
         "engsrc/snd_mix.c"
@@ -75,12 +71,11 @@ set(GL_SOURCE_FILES
         "engsrc/gl_rsurf.c"
         "engsrc/gl_screen.c"
         "engsrc/gl_warp.c"
-        #"engsrc/vid_sdl.c"
         #"engsrc/gl_vidlinuxglx.c"
         "engsrc/gl_vidsdl.c"
  )
  
- add_executable(QSdlGles ${CL_SOURCE_FILES} ${SV_SOURCE_FILES} ${GL_SOURCE_FILES} ${MY_EXTLIB_SOURCE})
+ add_executable(QSdlGles ${CL_SOURCE_FILES} ${SV_SOURCE_FILES} ${GL_SOURCE_FILES})
  
  target_link_libraries(QSdlGles
 	SDL2
