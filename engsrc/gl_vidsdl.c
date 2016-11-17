@@ -593,7 +593,7 @@ void VID_Init(unsigned char *palette)
 		SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE,     5);
 		SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE,    5);
 	    
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,  1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,  0);
 	    
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,  2);
 		
