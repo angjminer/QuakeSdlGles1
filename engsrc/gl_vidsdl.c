@@ -23,9 +23,9 @@
 #endif
 SDL_Window* window;
 SDL_GLContext context = NULL;
-
+SDL_DisplayMode mode;
 SDL_Event event;
-static int depth = 16;
+static int depth;
 viddef_t    vid;
 
 #define WARP_WIDTH              320*2
@@ -478,22 +478,52 @@ static void Check_Gamma (unsigned char *pal)
 
 	memcpy (pal, palette, sizeof(palette));
 }
+int GetCurrentDisplayMode()
+{
+      int i;
 
+      // Declare display mode structure to be filled in.
+      //SDL_DisplayMode current;
 
+      //SDL_Init(SDL_INIT_VIDEO);
 
+      // Get current display mode of all displays.
+      for(i = 0; i < SDL_GetNumVideoDisplays(); ++i){
+
+	      int should_be_zero = SDL_GetCurrentDisplayMode(i, &mode);
+
+	      if(should_be_zero != 0){
+		// In case of error...
+		SDL_Log("Could not get display mode for video display #%d: %s", i, SDL_GetError());
+		SDL_Quit();
+	      }
+	      else
+		  // On success, print the current display mode.
+		  //SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", i, mode.w, mode.h, mode.refresh_rate);
+		  //SDL_GetCurrentDisplayMode(0, &mode);
+		  SDL_Log("Display #%d: \n",i);
+		  SDL_Log("Current display mode is: \n");
+		  SDL_Log("Screen Width: %dx\n",mode.w);
+		  SDL_Log("Screen Height: %dpx\n",mode.h);
+		  SDL_Log("Screen Refresh rate: %dhz\n",mode.refresh_rate);
+		  SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode.format));
+		  SDL_Log("\n");
+		  SDL_Log("Vendor     : %s\n", glGetString(GL_VENDOR));
+		  SDL_Log("Renderer   : %s\n", glGetString(GL_RENDERER));
+		  SDL_Log("Version    : %s\n", glGetString(GL_VERSION));
+		  SDL_Log("Extensions : %s\n", glGetString(GL_EXTENSIONS));
+		  SDL_Log("\n");
+	}
+	return 0;
+}
 void VID_Init(unsigned char *palette)
 {
 	int i;
-	SDL_DisplayMode mode;
 	char	gldir[MAX_OSPATH];
-	int width = WARP_WIDTH, height = WARP_HEIGHT;
-
-	unsigned long mask;
+	int width = WARP_WIDTH; 
+	int height = WARP_HEIGHT;
 	Uint32 flags;
-
 	qboolean fullscreen = true;
-	int MajorVersion, MinorVersion;
-	int actualWidth, actualHeight;
 
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&gl_ztrick);
@@ -503,35 +533,7 @@ void VID_Init(unsigned char *palette)
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 
-// interpret command-line params
 
-// set vid parameters
-	if ((i = COM_CheckParm("-window")) != 0)
-		fullscreen = false;
-
-	if ((i = COM_CheckParm("-width")) != 0)
-		width = atoi(com_argv[i+1]);
-
-	if ((i = COM_CheckParm("-height")) != 0)
-		height = atoi(com_argv[i+1]);
-
-	if ((i = COM_CheckParm("-conwidth")) != 0)
-		vid.conwidth = Q_atoi(com_argv[i+1]);
-	else
-		vid.conwidth = WARP_WIDTH;
-
-	vid.conwidth &= 0xfff8; // make it a multiple of eight
-
-	if (vid.conwidth < WARP_WIDTH)
-		vid.conwidth = WARP_WIDTH;
-
-	// pick a conheight that matches with correct aspect
-	vid.conheight = vid.conwidth*3 / 4;
-
-	if ((i = COM_CheckParm("-conheight")) != 0)
-		vid.conheight = Q_atoi(com_argv[i+1]);
-	if (vid.conheight < WARP_HEIGHT)
-		vid.conheight = WARP_HEIGHT;
 
 	/* Enable standard application logging */
 	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);    
@@ -540,11 +542,44 @@ void VID_Init(unsigned char *palette)
 	{
 		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
 		SDL_Quit();
-		//return 1;
 	}
 	else
 	{
-	  
+		GetCurrentDisplayMode();
+	// interpret command-line params
+	// set vid parameters
+		width = mode.w;
+		height = mode.h;
+		depth = SDL_BITSPERPIXEL(mode.format);
+		if ((i = COM_CheckParm("-window")) != 0)
+			fullscreen = false;
+
+		if ((i = COM_CheckParm("-width")) != 0)
+			width = atoi(com_argv[i+1]);
+
+		if ((i = COM_CheckParm("-height")) != 0)
+			height = atoi(com_argv[i+1]);
+
+		if ((i = COM_CheckParm("-conwidth")) != 0)
+			vid.conwidth = Q_atoi(com_argv[i+1]);
+		else
+			vid.conwidth = width;
+
+		vid.conwidth &= 0xfff8; // make it a multiple of eight
+
+		if (vid.conwidth < width)
+			vid.conwidth = width;
+
+		// pick a conheight that matches with correct aspect
+		vid.conheight = vid.conwidth*3 / 4;
+
+		if ((i = COM_CheckParm("-conheight")) != 0)
+			vid.conheight = Q_atoi(com_argv[i+1]);
+		if (vid.conheight < height)
+			vid.conheight = height;
+		vid.width = width;
+		vid.height = height;
+		
 		SDL_GL_SetAttribute(SDL_GL_RED_SIZE,            5);
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,          5);
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,           5);
@@ -589,29 +624,12 @@ void VID_Init(unsigned char *palette)
 			}
 			else
 			{
-				SDL_GetCurrentDisplayMode(0, &mode);
-				SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode.format));
 				SDL_Log("\n");
 				SDL_Log("Vendor     : %s\n", glGetString(GL_VENDOR));
 				SDL_Log("Renderer   : %s\n", glGetString(GL_RENDERER));
 				SDL_Log("Version    : %s\n", glGetString(GL_VERSION));
 				SDL_Log("Extensions : %s\n", glGetString(GL_EXTENSIONS));
-				SDL_Log("\n");
-				//glClearColor(0.0, 0.0, 0.0, 1.0);
-				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				
-				float aspectAdjust;
-				aspectAdjust = (4.0f / 3.0f) / ((float)width / height);
-				glViewport(0, 0, width, height);
-				glMatrixMode(GL_PROJECTION);
-				glLoadIdentity();
-				glOrthof(-2.0, 2.0, -2.0 * aspectAdjust, 2.0 * aspectAdjust, -20.0, 20.0);
-				glMatrixMode(GL_MODELVIEW);
-				glLoadIdentity();
-				glEnable(GL_DEPTH_TEST);
-				glDepthFunc(GL_LESS);
-				glShadeModel(GL_SMOOTH);
-				
+				SDL_Log("\n");	
 			}
 		}
 	}
@@ -636,7 +654,7 @@ void VID_Init(unsigned char *palette)
 	vid.width = vid.conwidth;
 	vid.height = vid.conheight;
 
-	vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 240.0);
+	vid.aspect = ((float)vid.height / (float)vid.width);// * (320.0 / 240.0);
 	vid.numpages = 2;
 	//reenable after debugging, or maybe make a switch?
 	//InitSig(); // trap evil signals
