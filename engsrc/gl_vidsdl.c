@@ -593,9 +593,9 @@ void VID_Init(unsigned char *palette)
 		SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE,     5);
 		SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE,    5);
 	    
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,  0);
+		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,  0);//intel doesnt like this
 	    
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,  2);
+		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,  2);//intel doesnt like this
 		
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 1);
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
