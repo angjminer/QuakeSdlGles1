@@ -781,7 +781,8 @@ void Host_Say(qboolean teamonly)
 	client_t *save;
 	int		j;
 	char	*p;
-	char*__restrict text;//[64];//unsigned char	text[64];
+	//char*__restrict text;//[64];//
+	unsigned char	text[64];
 	qboolean	fromServer = false;
 
 	if (cmd_source == src_command)
