@@ -1,4 +1,5 @@
 #!/bin/bash
+rm ./QSdlGles
 cp ../build/QSdlGles ./QSdlGles
-#./QSdlGles -width 1920 -height 1080 
-./QSdlGles -window -width 640 -height 480
+./QSdlGles 
+#./QSdlGles -window -width 1024 -height 640
