@@ -346,7 +346,7 @@ void EmitBothSkyLayers (msurface_t *fa)
 =================
 R_DrawSkyChain
 =================
-*/
+
 void R_DrawSkyChain (msurface_t *s)
 {
 	msurface_t	*fa;
@@ -371,7 +371,7 @@ void R_DrawSkyChain (msurface_t *s)
 
 	glDisable (GL_BLEND);
 }
-
+*/
 #endif
 
 /*
@@ -382,7 +382,7 @@ void R_DrawSkyChain (msurface_t *s)
 =================================================================
 */
 
-#ifdef QUAKE2
+//#ifdef QUAKE2
 
 
 #define	SKY_TEX		2000
@@ -694,7 +694,7 @@ void R_LoadSkys (void)
 	for (i=0 ; i<6 ; i++)
 	{
 		GL_Bind (SKY_TEX + i);
-		sprintf (name, "gfx/env/bkgtst%s.tga", suf[i]);
+		sprintf (name, "gfx/env/skybox/sky%s.tga", suf[i]);//angelo make this a variable
 		COM_FOpenFile (name, &f);
 		if (!f)
 		{
@@ -928,7 +928,7 @@ void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 =================
 R_DrawSkyChain
 =================
-*/
+
 void R_DrawSkyChain (msurface_t *s)
 {
 	msurface_t	*fa;
@@ -954,7 +954,64 @@ void R_DrawSkyChain (msurface_t *s)
 		}
 	}
 }
+*/
+/*
+=================
 
+R_DrawSkyChain
+
+=================
+*/
+void R_DrawSkyChain (msurface_t *s)
+{
+	msurface_t	*fa;
+	int		i;
+	vec3_t	verts[MAX_CLIP_VERTS];
+	glpoly_t	*p;
+
+
+	if (r_skybox.value) // if the skybox value is one, draw the skybox
+	{
+	c_sky = 0;
+	GL_Bind(solidskytexture);
+	// calculate vertex values for sky box
+	
+
+	  
+	for (fa=s ; fa ; fa=fa->texturechain)
+	{
+		for (p=fa->polys ; p ; p=p->next)
+		{
+			for (i=0 ; i<p->numverts ; i++)
+			{
+				VectorSubtract (p->verts[i], r_origin, verts[i]);
+			}
+			ClipSkyPolygon (p->numverts, verts[0], 0);
+		}
+	}
+	
+	}
+        else // otherwise, draw the normal quake sky
+	{
+	GL_DisableMultitexture();
+	// used when gl_texsort is on
+	GL_Bind(solidskytexture);
+	speedscale = realtime*8;
+	speedscale -= (int)speedscale & ~127 ;
+
+	for (fa=s ; fa ; fa=fa->texturechain)
+		EmitSkyPolys (fa);
+	glEnable (GL_BLEND);
+	GL_Bind (alphaskytexture);
+	speedscale = realtime*16;
+	speedscale -= (int)speedscale & ~127 ;
+
+	for (fa=s ; fa ; fa=fa->texturechain)
+		EmitSkyPolys (fa);
+
+	glDisable (GL_BLEND);
+	}
+}
 
 /*
 ==============
@@ -972,7 +1029,7 @@ void R_ClearSkyBox (void)
 	}
 }
 
-
+/*
 void MakeSkyVec (float s, float t, int axis)
 {
 	vec3_t		v, b;
@@ -1009,13 +1066,14 @@ void MakeSkyVec (float s, float t, int axis)
 	glTexCoord2f (s, t);
 	glVertex3fv (v);
 }
-
+*/
 /*
 ==============
 R_DrawSkyBox
 ==============
 */
 int	skytexorder[6] = {0,2,1,3,4,5};
+/*
 void R_DrawSkyBox (void)
 {
 	int		i, j, k;
@@ -1040,9 +1098,135 @@ void R_DrawSkyBox (void)
 	}
 
 }
+*/
 
 
-#endif
+
+void MakeSkyVec (float s, float t, int axis)
+{
+	vec3_t		v, b;
+	int			j, k;
+
+	b[0] = s*2048;
+	b[1] = t*2048;
+	b[2] = 2048;
+
+	for (j=0 ; j<3 ; j++)
+	{
+		k = st_to_vec[axis][j];
+		if (k < 0)
+			v[j] = -b[-k - 1];
+		else
+			v[j] = b[k - 1];
+		v[j] += r_origin[j];
+	}
+
+	// avoid bilerp seam
+	s = (s+1)*0.5;
+	t = (t+1)*0.5;
+
+	if (s < 1.0/512)
+		s = 1.0/512;
+	else if (s > 511.0/512)
+		s = 511.0/512;
+	if (t < 1.0/512)
+		t = 1.0/512;
+	else if (t > 511.0/512)
+		t = 511.0/512;
+
+	t = 1.0 - t;
+	//SkyBVerts[vc++] = v[0];
+	//SkyBVerts[vc++] = v[1];
+	//SkyBVerts[vc++] = v[2];
+	//SkyBTex[tc++] = s;
+	//SkyBTex[tc++] = t;
+}
+void R_DrawSkyBox (void)
+{
+	int		i, j, k, l;
+	vec3_t	v, b;
+	float	s, t;
+	
+
+	int vcount = 0;
+
+	for (i=0 ; i<6 ; i++)
+	{
+	GLfloat SkyBVerts[6*3];
+	GLfloat SkyBTex[6*2];
+	int vc = 0;
+	int tc = 0;
+		if (skymins[0][i] >= skymaxs[0][i]
+		|| skymins[1][i] >= skymaxs[1][i])
+			continue;
+
+		GL_Bind (SKY_TEX+skytexorder[i]);
+
+		//glBegin (GL_QUADS);
+		//MakeSkyVec (skymins[0][i], skymins[1][i], i);0
+		//MakeSkyVec (skymins[0][i], skymaxs[1][i], i);1
+		//MakeSkyVec (skymaxs[0][i], skymaxs[1][i], i);2
+		//MakeSkyVec (skymaxs[0][i], skymins[1][i], i);3
+		//glEnd ();
+		//could be better?
+		for (l=0; l<6; l++)
+		{
+		      if(l==0 || l==1 || l==5)s=skymins[0][i];
+		      if(l==2 || l==3 || l==4)s=skymaxs[0][i];
+		      if(l==0 || l==4 || l==5)t=skymins[1][i];
+		      if(l==1 || l==2 || l==3)t=skymaxs[1][i];
+		      //if(l==0){s = skymins[0][i];t = skymins[1][i];}
+		      //if(l==1){s = skymins[0][i];t = skymaxs[1][i];}
+		      //if(l==2){s = skymaxs[0][i];t = skymaxs[1][i];}
+		      //if(l==3){s = skymins[0][i];t = skymins[1][i];}
+		      //if(l==4){s = skymaxs[0][i];t = skymaxs[1][i];}
+		      //if(l==5){s = skymaxs[0][i];t = skymins[1][i];}
+		      b[0] = s*2048;
+		      b[1] = t*2048;
+		      b[2] = 2048;
+
+		      for (j=0 ; j<3 ; j++)
+		      {
+			      k = st_to_vec[i][j];
+			      if (k < 0)
+				      v[j] = -b[-k - 1];
+			      else
+				      v[j] = b[k - 1];
+			      v[j] += r_origin[j];
+		      }
+
+		      // avoid bilerp seam
+		      s = (s+1)*0.5;
+		      t = (t+1)*0.5;
+
+		      if (s < 1.0/512)
+			      s = 1.0/512;
+		      else if (s > 511.0/512)
+			      s = 511.0/512;
+		      if (t < 1.0/512)
+			      t = 1.0/512;
+		      else if (t > 511.0/512)
+			      t = 511.0/512;
+
+		      t = 1.0 - t;
+		      SkyBVerts[vc++] = v[0];
+		      SkyBVerts[vc++] = v[1];
+		      SkyBVerts[vc++] = v[2];
+		      SkyBTex[tc++] = s;
+		      SkyBTex[tc++] = t;
+		}
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, SkyBVerts);
+	glTexCoordPointer(2, GL_FLOAT, 0, SkyBTex);
+	glDrawArrays(GL_TRIANGLES,0,6);//GL_TRIANGLE_FAN,0,36);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+}
+
+//#endif
 
 //===============================================================
 

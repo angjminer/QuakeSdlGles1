@@ -28,7 +28,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-
+//angelo
+#include "ifaddrs.h"
+#include <arpa/inet.h>
+//#include <net/if.h>
+//angelo
 #ifdef __sun__
 #include <sys/filio.h>
 #endif
@@ -52,7 +56,76 @@ static unsigned long myAddr;
 #include "net_udp.h"
 
 //=============================================================================
+//angelo get list of interfaces and addresses of interfaces
+int ifnum;
+ifaddn tifn[8];
+int Get_If_Add_L (void)
+{
+//angelo bypass local host/ loop back
+	struct ifaddrs *ifaddr, *ifa, *tifa;
+	int family, s, n, i;
 
+	if (getifaddrs(&ifaddr) == -1) {
+	    perror("getifaddrs");
+	    exit(EXIT_FAILURE);
+	}
+
+	/* Walk through linked list, maintaining head pointer so we
+	  can free list later */
+	//this for loop needs to be gotten rid of, make this more elegant angelo
+	int count = 0;
+	for(tifa = ifaddr, i = 0; tifa != NULL; tifa = tifa->ifa_next, i++){
+	    if (tifa->ifa_addr == NULL)
+		continue;
+	    if ((strcmp("lo", tifa->ifa_name) == 0))
+		continue;
+	    family = tifa->ifa_addr->sa_family;
+	    if (family == AF_INET) {
+	    count++;  
+	    //Con_Printf("for loop count1 %d\n", count);
+	    }
+	}
+	freeifaddrs(tifa);
+	
+	ifnum = 0;
+	
+	for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
+	    if (ifa->ifa_addr == NULL)
+		continue;
+	    if ((strcmp("lo", ifa->ifa_name) == 0))
+		continue;
+		family = ifa->ifa_addr->sa_family;
+
+		/* For an AF_INET* interface address, display the address */
+
+		if (family == AF_INET) {
+		    s = getnameinfo(ifa->ifa_addr,
+			    (family == AF_INET) ? sizeof(struct sockaddr_in) :
+						  sizeof(struct sockaddr_in6),
+			    host, NI_MAXHOST,
+			    NULL, 0, NI_NUMERICHOST);
+		    if (s != 0) {
+			printf("getnameinfo() failed: %s\n", gai_strerror(s));
+			exit(EXIT_FAILURE);
+		    }
+
+		    Con_Printf("adapter# %d name: %s  address: <%s>\n", n, ifa->ifa_name, host);
+		    struct ifaddn ts;
+		    sprintf(ts.ifa_name,"%s",ifa->ifa_name);
+		    sprintf(ts.ifa_add,"%s",host);
+		    tifn[ifnum] = ts;
+		    ifnum++;
+		}
+	}
+	//for(int j = 0; j < (sizeof(tifn)/sizeof(struct ifaddn)); j++){
+	 //Con_Printf("name:%s\n", tifn[j].ifa_name);//.ifa_name);
+	 //Con_Printf("j: %d add:<%s>\n", j, tifn[j].ifa_add);//.ifa_add);
+	//}  
+	freeifaddrs(ifaddr);
+	//exit(EXIT_SUCCESS);
+//angelo bypass local host/ loop back
+}
+//=============================================================================
 int UDP_Init (void)
 {
 	struct hostent *local;
@@ -62,10 +135,16 @@ int UDP_Init (void)
 	
 	if (COM_CheckParm ("-noudp"))
 		return -1;
-
+	/*
+	for(int j = 0; j < (sizeof(tifn)/sizeof(struct ifaddn)); j++){
+	 Con_Printf("udp name:%s\n", tifn[j].ifa_name);//.ifa_name);
+	 Con_Printf("udp j: %d add:<%s>\n", j, tifn[j].ifa_add);//.ifa_add);
+	} 
+	*/
 	// determine my name & address
-	gethostname(buff, MAXHOSTNAMELEN);
-	local = gethostbyname(buff);
+	gethostname(buff, MAXHOSTNAMELEN);//angelo we will keep this to set the displayed host name to the name of the machine
+	local = gethostbyname(host);
+	//strncpy(buff, local->h_name, MAXHOSTNAMELEN);//ends up being the ip address of the current interface
 	myAddr = *(int *)local->h_addr_list[0];
 
 	// if the quake hostname isn't set, set it to the machine name
@@ -89,11 +168,11 @@ int UDP_Init (void)
 		*colon = 0;
 
 	Con_Printf("UDP Initialized\n");
+	
 	tcpipAvailable = true;
 
 	return net_controlsocket;
 }
-
 //=============================================================================
 
 void UDP_Shutdown (void)
@@ -131,7 +210,7 @@ int UDP_OpenSocket (int port)
 	struct sockaddr_in address;
 	qboolean _true = true;
 
-	if ((newsocket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+	if ((newsocket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)//angelo
 		return -1;
 
 	if (ioctl (newsocket, FIONBIO, (char *)&_true) == -1)

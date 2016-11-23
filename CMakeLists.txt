@@ -7,14 +7,17 @@ add_definitions(
 
 #find_package(OpenGL REQUIRED)
 add_subdirectory (extlib)
-
+add_subdirectory (toolsrc)
 include_directories(
 	"engsrc/"
+	"extlib/android-ifaddrs/"
 	"extlib/glm/"
 	"extlib/SDL2/include/"
 	${OPENGL_INCLUDE_DIR}
 )
-
+set(IFADDRS_SOURCE
+	"extlib/android-ifaddrs/ifaddrs.c"
+)
 set(CL_SOURCE_FILES
         "engsrc/cl_demo.c"
         "engsrc/cl_input.c"
@@ -71,11 +74,10 @@ set(GL_SOURCE_FILES
         "engsrc/gl_rsurf.c"
         "engsrc/gl_screen.c"
         "engsrc/gl_warp.c"
-        #"engsrc/gl_vidlinuxglx.c"
         "engsrc/gl_vidsdl.c"
  )
  
- add_executable(QSdlGles ${CL_SOURCE_FILES} ${SV_SOURCE_FILES} ${GL_SOURCE_FILES})
+ add_executable(QSdlGles ${CL_SOURCE_FILES} ${SV_SOURCE_FILES} ${GL_SOURCE_FILES} ${IFADDRS_SOURCE})
  
  target_link_libraries(QSdlGles
 	SDL2

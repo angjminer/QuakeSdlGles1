@@ -209,6 +209,7 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_reporttjunctions);
 
 	Cvar_RegisterVariable (&gl_doubleeyes);
+	Cvar_RegisterVariable (&r_skybox);
 
 	R_InitParticles ();
 	R_InitParticleTexture ();
@@ -396,9 +397,9 @@ void R_NewMap (void)
 			mirrortexturenum = i;
  		cl.worldmodel->textures[i]->texturechain = NULL;
 	}
-#ifdef QUAKE2
+//#ifdef QUAKE2
 	R_LoadSkys ();
-#endif
+//#endif
 }
 
 

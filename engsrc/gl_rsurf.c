@@ -1418,9 +1418,9 @@ void R_DrawWorld (void)
 	//glColor3f (1,1,1);
 	glColor4f(1,1,1,1);
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
-#ifdef QUAKE2
+//#ifdef QUAKE2
 	R_ClearSkyBox ();
-#endif
+//#endif
 
 	R_RecursiveWorldNode (cl.worldmodel->nodes);
 
@@ -1428,9 +1428,9 @@ void R_DrawWorld (void)
 
 	R_BlendLightmaps ();
 
-#ifdef QUAKE2
+//#ifdef QUAKE2
 	R_DrawSkyBox ();
-#endif
+//#endif
 }
 
 
@@ -1704,7 +1704,7 @@ void GL_BuildLightmaps (void)
 		texture_extension_number += MAX_LIGHTMAPS;
 	}
 
-	gl_lightmap_format = GL_LUMINANCE;
+	gl_lightmap_format = GL_RGBA;// GL_LUMINANCE;
 	// default differently on the Permedia
 	if (isPermedia)
 		gl_lightmap_format = GL_RGBA;

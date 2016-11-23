@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // net_dgrm.c
 
 // This is enables a simple IP banning mechanism
-#define BAN_TEST
+//#define BAN_TEST//FIXME angelo it bans indescriminetly
 
 #ifdef BAN_TEST
 
@@ -49,7 +49,6 @@ unsigned long inet_addr(const char *cp);
 
 #include "quakedef.h"
 #include "net_dgrm.h"
-
 // these two macros are to make the code more readable
 #define sfunc	net_landrivers[sock->landriver]
 #define dfunc	net_landrivers[net_landriverlevel]
@@ -777,6 +776,7 @@ int Datagram_Init (void)
 		net_landrivers[i].initialized = true;
 		net_landrivers[i].controlSock = csock;
 		}
+		
 
 #ifdef BAN_TEST
 	Cmd_AddCommand ("ban", NET_Ban_f);
@@ -996,6 +996,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 			dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
 			SZ_Clear(&net_message);
 			return NULL;
+			
 		}
 	}
 #endif

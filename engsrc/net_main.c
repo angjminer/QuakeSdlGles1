@@ -26,15 +26,17 @@ qsocket_t	*net_activeSockets = NULL;
 qsocket_t	*net_freeSockets = NULL;
 int			net_numsockets = 0;
 
-qboolean	serialAvailable = false;
-qboolean	ipxAvailable = false;
 qboolean	tcpipAvailable = false;
 
 int			net_hostport;
 int			DEFAULTnet_hostport = 26000;
 
-char		my_ipx_address[NET_NAMELEN];
 char		my_tcpip_address[NET_NAMELEN];
+//angelo interfaces
+char host[1025];//NI_MAXHOST];
+//ifaddn *tifn;
+//int ifnum;
+//angelo
 
 void (*GetComPortConfig) (int portNumber, int *port, int *irq, int *baud, qboolean *useModem);
 void (*SetComPortConfig) (int portNumber, int port, int irq, int baud, qboolean useModem);
@@ -66,15 +68,7 @@ int unreliableMessagesReceived = 0;
 cvar_t	net_messagetimeout = {"net_messagetimeout","300"};
 cvar_t	hostname = {"hostname", "UNNAMED"};
 
-qboolean	configRestored = false;
-cvar_t	config_com_port = {"_config_com_port", "0x3f8", true};
-cvar_t	config_com_irq = {"_config_com_irq", "4", true};
-cvar_t	config_com_baud = {"_config_com_baud", "57600", true};
-cvar_t	config_com_modem = {"_config_com_modem", "1", true};
-cvar_t	config_modem_dialtype = {"_config_modem_dialtype", "T", true};
-cvar_t	config_modem_clear = {"_config_modem_clear", "ATZ", true};
-cvar_t	config_modem_init = {"_config_modem_init", "", true};
-cvar_t	config_modem_hangup = {"_config_modem_hangup", "AT H", true};
+
 
 #ifdef IDGODS
 cvar_t	idgods = {"idgods", "0"};
@@ -800,7 +794,7 @@ int NET_SendToAll(sizebuf_t *data, int blocktime)
 NET_Init
 ====================
 */
-
+int netredo = 1;
 void NET_Init (void)
 {
 	int			i;
@@ -819,8 +813,6 @@ void NET_Init (void)
 	i = COM_CheckParm ("-port");
 	if (!i)
 		i = COM_CheckParm ("-udpport");
-	if (!i)
-		i = COM_CheckParm ("-ipxport");
 
 	if (i)
 	{
@@ -849,17 +841,11 @@ void NET_Init (void)
 
 	// allocate space for network message buffer
 	SZ_Alloc (&net_message, NET_MAXMESSAGE);
-
+	Con_Printf("netredo:%d\n", netredo);
+	if(netredo != 0){
 	Cvar_RegisterVariable (&net_messagetimeout);
 	Cvar_RegisterVariable (&hostname);
-	Cvar_RegisterVariable (&config_com_port);
-	Cvar_RegisterVariable (&config_com_irq);
-	Cvar_RegisterVariable (&config_com_baud);
-	Cvar_RegisterVariable (&config_com_modem);
-	Cvar_RegisterVariable (&config_modem_dialtype);
-	Cvar_RegisterVariable (&config_modem_clear);
-	Cvar_RegisterVariable (&config_modem_init);
-	Cvar_RegisterVariable (&config_modem_hangup);
+	
 #ifdef IDGODS
 	Cvar_RegisterVariable (&idgods);
 #endif
@@ -868,7 +854,7 @@ void NET_Init (void)
 	Cmd_AddCommand ("listen", NET_Listen_f);
 	Cmd_AddCommand ("maxplayers", MaxPlayers_f);
 	Cmd_AddCommand ("port", NET_Port_f);
-
+	}
 	// initialize all the drivers
 	for (net_driverlevel=0 ; net_driverlevel<net_numdrivers ; net_driverlevel++)
 		{
@@ -881,8 +867,6 @@ void NET_Init (void)
 			net_drivers[net_driverlevel].Listen (true);
 		}
 
-	if (*my_ipx_address)
-		Con_DPrintf("IPX address %s\n", my_ipx_address);
 	if (*my_tcpip_address)
 		Con_DPrintf("TCP/IP address %s\n", my_tcpip_address);
 }
@@ -928,20 +912,6 @@ void NET_Poll(void)
 {
 	PollProcedure *pp;
 	qboolean	useModem;
-
-	if (!configRestored)
-	{
-		if (serialAvailable)
-		{
-			if (config_com_modem.value == 1.0)
-				useModem = true;
-			else
-				useModem = false;
-			SetComPortConfig (0, (int)config_com_port.value, (int)config_com_irq.value, (int)config_com_baud.value, useModem);
-			SetModemConfig (0, config_modem_dialtype.string, config_modem_clear.string, config_modem_init.string, config_modem_hangup.string);
-		}
-		configRestored = true;
-	}
 
 	SetNetTime();
 

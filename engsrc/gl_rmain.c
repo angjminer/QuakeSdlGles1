@@ -92,13 +92,13 @@ cvar_t	gl_texsort = {"gl_texsort","1"};
 cvar_t	gl_smoothmodels = {"gl_smoothmodels","1"};
 cvar_t	gl_affinemodels = {"gl_affinemodels","0"};
 cvar_t	gl_polyblend = {"gl_polyblend","1"};
-cvar_t	gl_flashblend = {"gl_flashblend","0"};
+cvar_t	gl_flashblend = {"gl_flashblend","1"};
 cvar_t	gl_playermip = {"gl_playermip","0"};
 cvar_t	gl_nocolors = {"gl_nocolors","0"};
 cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","0"};
 cvar_t	gl_reporttjunctions = {"gl_reporttjunctions","0"};
 cvar_t	gl_doubleeyes = {"gl_doubleeys", "1"};
-
+cvar_t r_skybox = {"r_skybox", "1", true}; // set the skybox to on, and save the value in the config file (true)
 extern	cvar_t	gl_ztrick;
 
 /*
@@ -642,7 +642,7 @@ void R_DrawAliasModel (entity_t *e)
 	}
 
 	if (gl_smoothmodels.value)
-		glShadeModel (GL_SMOOTH);
+		glShadeModel (GL_FLAT);//GL_SMOOTH);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	if (gl_affinemodels.value)
@@ -848,6 +848,7 @@ void R_PolyBlend (void)//angelo screen flash
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
 	glEnable (GL_ALPHA_TEST);
+
 	
 }
 
@@ -955,6 +956,7 @@ void MYgluPerspective( GLdouble fovy, GLdouble aspect,
    xmax = ymax * aspect;
 
    glFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
+
 }
 
 
@@ -963,6 +965,78 @@ void MYgluPerspective( GLdouble fovy, GLdouble aspect,
 R_SetupGL
 =============
 */
+
+void R_SetupGL (void)
+{
+	float	screenaspect;
+	extern	int glwidth, glheight;
+	int		x, x2, y2, y, w, h;
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity ();
+	x = r_refdef.vrect.x * glwidth/vid.width;
+	x2 = (r_refdef.vrect.x + r_refdef.vrect.width) * glwidth/vid.width;
+	y = (vid.height-r_refdef.vrect.y) * glheight/vid.height;
+	y2 = (vid.height - (r_refdef.vrect.y + r_refdef.vrect.height)) * glheight/vid.height;
+
+	// fudge around because of frac screen scale
+	if (x > 0)
+		x--;
+	if (x2 < glwidth)
+		x2++;
+	if (y2 < 0)
+		y2--;
+	if (y < glheight)
+		y++;
+
+	w = x2 - x;
+	h = y - y2;
+
+	if (envmap)
+	{
+		x = y2 = 0;
+		w = h = 256;
+	}
+    screenaspect = ((float)vid.width / vid.height);//(16.0f / 9.0f) / ((float)vid.width / vid.height);
+    glViewport(glx + x, gly + y2, vid.width, vid.height);
+//	yfov = 2*atan((float)r_refdef.vrect.height/r_refdef.vrect.width)*180/M_PI;
+    MYgluPerspective (r_refdef.fov_y,  screenaspect,  4,  4096);
+
+	if (mirror)
+	{
+		if (mirror_plane->normal[2])
+			glScalef (1, -1, 1);
+		else
+			glScalef (-1, 1, 1);
+		glCullFace(GL_BACK);
+	}
+	else
+		glCullFace(GL_FRONT);
+
+	glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity ();
+
+    glRotatef (-90,  1, 0, 0);	    // put Z going up
+    glRotatef (90,  0, 0, 1);	    // put Z going up
+    glRotatef (-r_refdef.viewangles[2],  1, 0, 0);
+    glRotatef (-r_refdef.viewangles[0],  0, 1, 0);
+    glRotatef (-r_refdef.viewangles[1],  0, 0, 1);
+    glTranslatef (-r_refdef.vieworg[0],  -r_refdef.vieworg[1],  -r_refdef.vieworg[2]);
+
+	glGetFloatv (GL_MODELVIEW_MATRIX, r_world_matrix);
+
+	//
+	// set drawing parms
+	//
+	if (gl_cull.value)
+		glEnable(GL_CULL_FACE);
+	else
+		glDisable(GL_CULL_FACE);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_DEPTH_TEST);
+}
+/*
 void R_SetupGL (void)
 {
 	float	screenaspect;
@@ -1040,7 +1114,7 @@ void R_SetupGL (void)
 	glDisable(GL_ALPHA_TEST);
 	glEnable(GL_DEPTH_TEST);
 }
-
+*/
 /*
 ================
 R_RenderScene

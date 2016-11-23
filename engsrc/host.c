@@ -865,6 +865,9 @@ void Host_Init (quakeparms_t *parms)
 	M_Init ();	
 	PR_Init ();
 	Mod_Init ();
+	//angelo get list of interfaces and addresses of interfaces
+	Get_If_Add_L ();
+	//angelo get interfaces and addresses of interfaces
 	NET_Init ();
 	SV_Init ();
 

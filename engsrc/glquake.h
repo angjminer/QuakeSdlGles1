@@ -200,7 +200,7 @@ extern	cvar_t	gl_reporttjunctions;
 extern	cvar_t	gl_flashblend;
 extern	cvar_t	gl_nocolors;
 extern	cvar_t	gl_doubleeyes;
-
+extern cvar_t	r_skybox;
 extern	int		gl_lightmap_format;
 extern	int		gl_solid_format;
 extern	int		gl_alpha_format;
