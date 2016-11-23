@@ -1,0 +1,30 @@
+QUTILS - for linux
+
+Ported by Joshua "make newbie" Lamorie, jlamorie@ingenia.com
+
+This package is something that I whipped up from the QUTILS.ZIP
+archive available at ftp.cdrom.com.  The one I got from
+ftp.idsoftware.com was missing mathlib.c, which wasn't so great.
+
+I've taken all the dos badness out of everything by running it through
+dos2unix on a Solaris box.  I've also removed all of the extraneous MS
+developer crap, leaving a nice lean archive.
+
+Since this was my first experience with make, I've only got a makefile
+for each binary.  It would be nice to have a global makefile, but I'll
+learn about that tomorrow.  If you do put one together, I'd like to
+see how it's done.
+
+This was compiled on a 486DX4 100, and altogether would prbably take
+about 5 minutes.  I'm running readhat 4.1, with kernel 2.0.27.  Make
+sure you have the libc-static package installed.
+
+I'm only beginning to learn how to use these utilities, and they all
+seem to run ok (i.e I run them and they tell me what arguments are
+missing).  So if you could point me to some FAQ's or HOWTO's I'd
+appreciate it.
+
+Thanks, enjoy.
+
+Joshua Lamorie
+jlamorie@ingenia.com - http://www.engsoc.carleton.ca/~jlamorie/
