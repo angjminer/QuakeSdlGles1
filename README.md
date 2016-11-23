@@ -82,6 +82,8 @@ it shouldnt be to difficult to follow along.
 get it to build first though :D
 and make backups every time your changes work as expected.
 
+I will get a list of all the dev libs you need soon.
+
 HAVE FUN
 
 angelo miner
